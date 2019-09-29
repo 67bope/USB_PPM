@@ -1,7 +1,7 @@
 /* 
  *  Simplified Logitech Extreme 3D Pro Joystick Report Parser, ready to go.
  *   
- * Script Was Combined and Tested By bope (RC-Groups.com)
+ * Script Was Combined and Tested By bope (RCGroups.com)
  * I did not create the Library this was Found online links are below
  * I did not create the PPM function Was found online links are below
  * I merged both codes to create something usefull out of it 
