@@ -34,11 +34,13 @@ JoystickReportParser                            Joy(&JoyEvents);
 
 bool printAngle;
 uint8_t state = 0;
-int sw = 0; //Switch for Buttons
+int sw1 = 0; //Switch for Buttons
+int sw2 = 0; //Switch for Hat
+int x = 1; //switch direction
 
   int Xval;   // 0 - 1023
   int Yval;   // 0 - 1023
-  int Hat;    // 0 - 15;
+  int Hat;    // 0 - 8;
   int Twist;  // 0 - 255
   int Slider; // 0 - 255
   int Button; // 0 - 12 (0 if no button, 1-12 for other buttons)
@@ -158,8 +160,23 @@ else{
       ppm[2] = map(Slider, 0 , 255, 800, 2000);
       // Yaw Axis is on Joystick Z Axis
       ppm[3] = map(Twist, 0 , 255, 1000, 2000);
+      
       // Hat (example: 8-way momentary Switch)
-      ppm[6] = (-125*Hat)+2000;
+      if (Button != 11 && sw2 == 0){
+      ppm[6] = -125*Hat+2000;
+      }
+          
+//Modify ppm-values (Expo)
+      int neg;
+      for(int i=0; i<4; i++){
+       if (i != 2) {
+      int mod = (ppm[i]-1500)/5; //-100 to +100
+      if (ppm[i]<1500){neg = -1;}else{neg = 1;}
+      mod = mod*mod; //0 to 10000 (exponential values)
+      mod = neg*mod/20;//-500 to +500
+      ppm[i]=1500+mod; //better than before
+        } 
+      } 
 
 switch (Button)  {
     case 1:
@@ -172,26 +189,64 @@ switch (Button)  {
       ppm[5] = 2000;
     break;
 
+    case 3:
+    break;
+
+    case 4:  
+    break;
+
+    case 5:  
+    break;
+    
+    case 6:  
+    break;
+    
+    case 7:  
+    break;
+            
     case 8:
       // Button8 is to Arm/Disarm if Arm is on AUX1
-      if (ppm[4] == 1000 && sw == 0){
+      if (ppm[4] == 1000 && sw1 == 0){
       ppm[4] = 2000;
         }
-      else if (ppm[4] == 2000 && sw == 0){
+      else if (ppm[4] == 2000 && sw1 == 0){
       ppm[4] = 1000;
         }
-        sw = 1;      
-    break;    
-
+        sw1 = 1;    
+    break;
+        
+    case 9:
+        sw2 = 0;//reset Hat-switch to momentary mode and hat-value to default
+    break;
+    
+    case 10:
+        sw2 = 2;//lock momentary hat-value (keep pressed while setting hat-value and release afterwards)
+        if (Hat != 8){
+          ppm[6] = -125*Hat+2000;
+        }
+    break;
+    
+    case 11: 
+      //Button11 fades an LED up and down (instead of using the 8-way hat)
+       if (ppm[6] >= 2000) {
+          x = -1;  // switch direction at peak
+       }
+       else if (ppm[6] <= 1000) {
+          x = 1;
+       }
+       ppm[6] = ppm[6]+x;
+       sw2 = 1;    
+    break;
+            
     case 12:
       // Button12 is to activate Beeper is on AUX4
       ppm[7] = 2000;
     break;       
 
-    default:
+    default:   
       //Momentary Switch example (Beeper)
       ppm[7] = 1000;
-      sw = 0; //indicates: Button8 released again
+      sw1 = 0; //indicates: Buttons released again  
     break;   
      }     
    }
@@ -214,7 +269,7 @@ switch (Button)  {
   Serial.print(ppm[5]);
   Serial.print("\t Beeper = ");
   Serial.println(ppm[7]);
-  delay(50);
+  //delay(50);
            
 }//loop
 ///////////////////////////////////////////////////////////////////////////////////////////////// 
